@@ -31,6 +31,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Twig\Environment as TwigEnvironment;
 
 /**
  * Controller handling basic authorization.
@@ -65,9 +66,9 @@ class AuthorizeController
     private $oAuth2Server;
 
     /**
-     * @var EngineInterface
+     * @var TwigEnvironment
      */
-    private $templating;
+    private $twig;
 
     /**
      * @var RequestStack
@@ -109,7 +110,7 @@ class AuthorizeController
      * @param Form                     $authorizeForm
      * @param AuthorizeFormHandler     $authorizeFormHandler
      * @param OAuth2                   $oAuth2Server
-     * @param EngineInterface          $templating
+     * @param TwigEnvironment          $twig
      * @param TokenStorageInterface    $tokenStorage
      * @param UrlGeneratorInterface    $router
      * @param ClientManagerInterface   $clientManager
@@ -122,7 +123,7 @@ class AuthorizeController
         Form $authorizeForm,
         AuthorizeFormHandler $authorizeFormHandler,
         OAuth2 $oAuth2Server,
-        EngineInterface $templating,
+        TwigEnvironment $twig,
         TokenStorageInterface $tokenStorage,
         UrlGeneratorInterface $router,
         ClientManagerInterface $clientManager,
@@ -135,7 +136,7 @@ class AuthorizeController
         $this->authorizeForm = $authorizeForm;
         $this->authorizeFormHandler = $authorizeFormHandler;
         $this->oAuth2Server = $oAuth2Server;
-        $this->templating = $templating;
+        $this->twig = $twig;
         $this->tokenStorage = $tokenStorage;
         $this->router = $router;
         $this->clientManager = $clientManager;
@@ -183,7 +184,7 @@ class AuthorizeController
             'client' => $this->getClient(),
         ];
 
-        return $this->renderAuthorize($data, $this->templating, $this->templateEngineType);
+        return $this->renderAuthorize($data, $this->twig, $this->templateEngineType);
     }
 
     /**
@@ -261,12 +262,12 @@ class AuthorizeController
     /**
      * @throws \RuntimeException
      */
-    protected function renderAuthorize(array $data, EngineInterface $engine, string $engineType): Response
+    protected function renderAuthorize(array $data, TwigEnvironment $twig, string $engineType): Response
     {
-        return $engine->renderResponse(
+        return new Response($twig->render(
             '@FOSOAuthServer/Authorize/authorize.html.'.$engineType,
             $data
-        );
+        ));
     }
 
     /**
